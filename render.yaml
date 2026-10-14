@@ -1,0 +1,12 @@
+# Render Blueprint: deploys the Dash website as a free web service.
+services:
+  - type: web
+    name: nyc-homes-dangerous-streets
+    runtime: python
+    plan: free
+    buildCommand: pip install -r app/requirements.txt
+    startCommand: gunicorn app.app:server --workers 1 --threads 4 --timeout 120
+    healthCheckPath: /
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.13.1
