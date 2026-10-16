@@ -4,7 +4,7 @@ Explore how NYC's affordable-housing production (HPD) relates to motor-vehicle c
 Data: pre-aggregated tables in app/data/, built by app/prepare_data.py from the notebook's cleaned outputs.
 
 Run locally:  python app/app.py            (then open http://127.0.0.1:8050)
-Production:   gunicorn app.app:server      (see README / render.yaml)
+Production:   PythonAnywhere WSGI (deploy/pythonanywhere_wsgi.py) or gunicorn app.app:server (render.yaml)
 """
 import os
 import re
@@ -18,7 +18,19 @@ from dash import Dash, Input, Output, State, ctx, dcc, html, no_update
 # Data
 # --------------------------------------------------------------------------------------
 DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data")
-load = lambda name: pd.read_parquet(os.path.join(DATA_DIR, f"{name}.parquet"))
+TEXT_COLUMNS = {"zip_code": str, "building_id": str}  # identifiers stay text when read from CSV
+
+
+def load(name):
+    # Read a website table: Parquet when pyarrow is installed (Render / local), otherwise the CSV copy
+    # (PythonAnywhere free accounts, where installing pyarrow does not fit in the disk quota).
+    parquet_path = os.path.join(DATA_DIR, f"{name}.parquet")
+    try:
+        return pd.read_parquet(parquet_path)
+    except ImportError:
+        return pd.read_csv(os.path.join(DATA_DIR, f"{name}.csv"), dtype=TEXT_COLUMNS)
+
+
 CRASH_CUBE = load("crash_cube")
 ZIP_CRASHES = load("zip_crashes")
 ZIP_HOUSING = load("zip_housing")
@@ -215,10 +227,11 @@ def scatter_figure(f):
                 hovertemplate="<b>ZIP %{text}</b><br>%{customdata:,.0f} affordable units"
                               "<br>%{y:.1f} " + who + " hurt per 100 crashes<extra></extra>"))
     rho = zips["units"].rank().corr(zips["rate"].rank())
+    rho_text = f"{rho:.2f}" if pd.notna(rho) else "not defined (no variation for this selection)"
     fig.update_xaxes(type="log", title="Affordable units completed (log scale)",
                      tickvals=[1, 11, 101, 1001, 10001], ticktext=["0", "10", "100", "1,000", "10,000"])
     fig.update_yaxes(title=f"{who.capitalize()} hurt per 100 crashes", rangemode="tozero")
-    fig.add_annotation(text=f"Spearman rank correlation: {rho:.2f} ({len(zips)} ZIP codes)", xref="paper",
+    fig.add_annotation(text=f"Spearman rank correlation: {rho_text} ({len(zips)} ZIP codes)", xref="paper",
                        yref="paper", x=0, y=1.06, showarrow=False, xanchor="left", font={"color": MUTED, "size": 12})
     return base_layout(fig)
 
@@ -373,7 +386,7 @@ app.layout = html.Div(className="page", children=[
             dropdown("severity", "Crash severity", [
                 {"label": "All crashes", "value": "all"}, {"label": "Injury or fatal", "value": "injury"},
                 {"label": "Fatal only", "value": "fatal"}], "all"),
-            html.Button("Generate report", id="generate", className="primary"),
+            html.Button("Generate Report", id="generate", className="primary"),
         ]),
         html.P(id="stale-hint", className="hint"),
     ]),
@@ -458,16 +471,17 @@ FILTER_IDS = ["borough", "year", "construction", "road_user", "severity"]
     Input("search-button", "n_clicks"), Input("search-text", "n_submit"),
     State("search-text", "value"), prevent_initial_call=True)
 def apply_search(_, __, text):
-    # Search mode: parse the query and set the dropdowns; the report updates on "Generate report"
+    # Search mode: parse the query and set the dropdowns; the report updates on "Generate Report"
     found, leftover = parse_search(text)
     if not found:
         return [no_update] * len(FILTER_IDS) + [
             "No filters recognised. Try a borough, a year (2014 – 2025), new construction or preservation, "
             "pedestrians / cyclists / motorists, injury or fatal."]
-    values = [str(found[k]) if k == "year" and k in found else found.get(k, no_update) for k in FILTER_IDS]
+    # Filters not mentioned in the query go back to their defaults, so an earlier search does not linger
+    values = [str(found[k]) if k == "year" and k in found else found.get(k, DEFAULT_FILTERS[k]) for k in FILTER_IDS]
     understood = ", ".join(f"{k.replace('_', ' ')} = {v}" for k, v in found.items())
     note = f" Ignored: {' '.join(leftover)}." if leftover else ""
-    return values + [f"Filters set: {understood}.{note} Select Generate report to update the charts."]
+    return values + [f"Filters set: {understood}.{note} Select Generate Report to update the charts."]
 
 
 @app.callback(
@@ -476,7 +490,7 @@ def apply_search(_, __, text):
     Output("heatmap", "figure"), Output("production", "figure"), Output("applied-filters", "data"),
     Input("generate", "n_clicks"), [State(i, "value") for i in FILTER_IDS])
 def generate_report(_, *values):
-    # "Generate report": rebuild every chart from the selected filters (also runs once on page load)
+    # "Generate Report": rebuild every chart from the selected filters (also runs once on page load)
     f = dict(zip(FILTER_IDS, values))
     tiles = [html.Div(className="kpi", children=[html.Div(v, className="kpi-value"), html.Div(l, className="kpi-label")])
              for v, l in kpis(f)]
@@ -490,7 +504,7 @@ def stale_hint(*args):
     # Tell the user when the dropdowns no longer match the report on screen
     *values, applied = args
     if applied and dict(zip(FILTER_IDS, values)) != applied:
-        return "Filters changed — select Generate report to update the charts."
+        return "Filters changed — select Generate Report to update the charts."
     return ""
 
 

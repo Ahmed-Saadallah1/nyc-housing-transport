@@ -1,0 +1,119 @@
+borough,year,construction_type,buildings,affordable_units,deeply_affordable_units
+Bronx,2014,New Construction,26,26,3
+Bronx,2014,Preservation,44,1629,442
+Bronx,2015,New Construction,21,31,2
+Bronx,2015,Preservation,48,1455,718
+Bronx,2016,New Construction,36,741,189
+Bronx,2016,Preservation,56,2163,970
+Bronx,2017,New Construction,43,953,399
+Bronx,2017,Preservation,143,5787,2514
+Bronx,2018,New Construction,62,3535,1595
+Bronx,2018,Preservation,55,2804,1597
+Bronx,2019,New Construction,68,3433,1268
+Bronx,2019,Preservation,182,5244,1334
+Bronx,2020,New Construction,46,2184,818
+Bronx,2020,Preservation,42,1501,817
+Bronx,2021,New Construction,69,3333,1740
+Bronx,2021,Preservation,66,2308,1338
+Bronx,2022,New Construction,115,2810,988
+Bronx,2022,Preservation,70,9206,6741
+Bronx,2023,New Construction,143,5240,2112
+Bronx,2023,Preservation,137,12182,7005
+Bronx,2024,New Construction,146,4388,1144
+Bronx,2024,Preservation,91,4985,3110
+Bronx,2025,New Construction,192,5111,1272
+Bronx,2025,Preservation,70,1954,960
+Brooklyn,2014,New Construction,56,56,3
+Brooklyn,2014,Preservation,66,901,11
+Brooklyn,2015,New Construction,17,122,53
+Brooklyn,2015,Preservation,50,219,41
+Brooklyn,2016,New Construction,36,1252,495
+Brooklyn,2016,Preservation,136,3621,557
+Brooklyn,2017,New Construction,64,1626,471
+Brooklyn,2017,Preservation,329,4497,1743
+Brooklyn,2018,New Construction,114,1606,340
+Brooklyn,2018,Preservation,188,9436,5025
+Brooklyn,2019,New Construction,272,2925,494
+Brooklyn,2019,Preservation,108,1413,845
+Brooklyn,2020,New Construction,116,2486,834
+Brooklyn,2020,Preservation,88,1984,1081
+Brooklyn,2021,New Construction,178,3688,930
+Brooklyn,2021,Preservation,59,1036,811
+Brooklyn,2022,New Construction,197,3056,1013
+Brooklyn,2022,Preservation,81,413,237
+Brooklyn,2023,New Construction,182,4199,1030
+Brooklyn,2023,Preservation,130,2847,1791
+Brooklyn,2024,New Construction,187,3731,1289
+Brooklyn,2024,Preservation,39,1329,504
+Brooklyn,2025,New Construction,202,5480,1839
+Brooklyn,2025,Preservation,40,546,248
+Manhattan,2014,New Construction,1,1,0
+Manhattan,2014,Preservation,31,2012,980
+Manhattan,2015,New Construction,3,17,0
+Manhattan,2015,Preservation,80,5835,343
+Manhattan,2016,New Construction,8,528,85
+Manhattan,2016,Preservation,66,2896,483
+Manhattan,2017,New Construction,23,870,31
+Manhattan,2017,Preservation,99,4308,1623
+Manhattan,2018,New Construction,26,1838,242
+Manhattan,2018,Preservation,136,5460,2814
+Manhattan,2019,New Construction,29,1059,164
+Manhattan,2019,Preservation,110,6138,2049
+Manhattan,2020,New Construction,23,779,301
+Manhattan,2020,Preservation,56,2996,2148
+Manhattan,2021,New Construction,20,1553,669
+Manhattan,2021,Preservation,114,2061,1090
+Manhattan,2022,New Construction,26,1242,406
+Manhattan,2022,Preservation,34,1454,548
+Manhattan,2023,New Construction,30,950,321
+Manhattan,2023,Preservation,42,2752,1562
+Manhattan,2024,New Construction,30,1363,490
+Manhattan,2024,Preservation,71,4604,3085
+Manhattan,2025,New Construction,40,1650,608
+Manhattan,2025,Preservation,68,3295,1583
+Queens,2014,New Construction,41,41,4
+Queens,2014,Preservation,39,346,307
+Queens,2015,New Construction,26,26,1
+Queens,2015,Preservation,11,12,0
+Queens,2016,New Construction,35,146,20
+Queens,2016,Preservation,28,1142,3
+Queens,2017,New Construction,35,203,40
+Queens,2017,Preservation,57,2695,992
+Queens,2018,New Construction,29,871,319
+Queens,2018,Preservation,27,28,0
+Queens,2019,New Construction,43,690,121
+Queens,2019,Preservation,43,393,10
+Queens,2020,New Construction,27,468,158
+Queens,2020,Preservation,11,39,6
+Queens,2021,New Construction,46,2427,523
+Queens,2021,Preservation,17,1286,1117
+Queens,2022,New Construction,71,2417,897
+Queens,2022,Preservation,39,1039,89
+Queens,2023,New Construction,78,2232,462
+Queens,2023,Preservation,41,347,58
+Queens,2024,New Construction,92,1917,392
+Queens,2024,Preservation,27,407,300
+Queens,2025,New Construction,83,2702,1143
+Queens,2025,Preservation,74,4930,2640
+Staten Island,2014,New Construction,45,45,4
+Staten Island,2014,Preservation,27,27,0
+Staten Island,2015,New Construction,31,31,5
+Staten Island,2015,Preservation,3,3,1
+Staten Island,2016,New Construction,29,29,1
+Staten Island,2016,Preservation,2,714,429
+Staten Island,2017,New Construction,35,149,1
+Staten Island,2017,Preservation,2,2,1
+Staten Island,2018,New Construction,13,172,161
+Staten Island,2018,Preservation,15,898,482
+Staten Island,2019,New Construction,8,8,1
+Staten Island,2020,New Construction,8,13,0
+Staten Island,2020,Preservation,2,123,2
+Staten Island,2021,New Construction,7,7,1
+Staten Island,2021,Preservation,8,155,44
+Staten Island,2022,New Construction,15,62,33
+Staten Island,2022,Preservation,9,324,5
+Staten Island,2023,New Construction,17,83,67
+Staten Island,2023,Preservation,6,9,7
+Staten Island,2024,New Construction,21,59,3
+Staten Island,2024,Preservation,2,2,0
+Staten Island,2025,New Construction,25,54,7

@@ -1,0 +1,9 @@
+# PythonAnywhere (free account, Python 3.13).
+# pandas and numpy are normally already installed on PythonAnywhere; pip skips them if a suitable version exists.
+# pyarrow is NOT needed: without it the app reads the CSV copies in app/data/.
+# Install from a PythonAnywhere Bash console (inside the repository folder):
+#   pip3.13 install --user --no-cache-dir -r deploy/requirements-pythonanywhere.txt
+# Worst case (nothing preinstalled) this uses about 280 MB of the 512 MB free disk quota.
+dash==4.4.1
+plotly==7.1.0
+pandas>=2.0
