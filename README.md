@@ -45,7 +45,7 @@ nyc-housing-transport/
 │   ├── raw/                # raw API snapshots (created by the notebook; not committed)
 │   └── processed/          # cleaned and integrated tables (created by the notebook; not committed)
 ├── docs/
-│   ├── prompt_log.md       # every prompt used, as required by the project description
+│   ├── prompt_log.md       # documented AI prompts and source limitations
 │   └── data_findings_log.md
 ├── wsgi.py                 # Flask entry point for Vercel
 ├── pyproject.toml          # Vercel website dependencies and Python version

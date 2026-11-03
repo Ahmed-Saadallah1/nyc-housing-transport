@@ -12,7 +12,7 @@ import re
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
-from dash import Dash, Input, Output, State, ctx, dcc, html, no_update
+from dash import Dash, Input, Output, State, dcc, html, no_update
 
 # --------------------------------------------------------------------------------------
 # Data
