@@ -25,3 +25,15 @@ AI assistant (Claude) and what each was used for. It is summarized in Section 11
 | 18 | Requirements review | "Explain this project do not implement anything" (project description and data catalog attached) | Re-reading the brief and checking the plan against every requirement |
 | 19 | Final review | "this is the project please revise line by line and make sure everything is done according to the pdf sent at the beginning of the chat then revise on the code and whats done including markdowns, then add whats missing and before deployment tell me our options" (notebook and repository link attached) | Line-by-line check of the notebook, website and README against the project description; RQ7 note, completed prompt list and Section 13 added to the notebook; comparison of deployment platforms |
 | 20 | Deployment | "Yes connect to the repo and do whats necessary ... do whats necessary according to the picture i sent you ... adjust to github, and readme, etc. ... all i want is left is the go live and putting the link on github" | PythonAnywhere deployment files (`deploy/`), CSV copies of the website tables, website fixes (correlation label, search resets unmentioned filters, "Generate Report" label), README deployment steps, submission email draft |
+
+## Corrective assistance — Codex (November 2026)
+
+The entries above preserve the team’s documented initial Claude history. Its completeness is not independently proven.
+The following are summaries of actual user requests in the corrective chat, not reconstructed historical prompts.
+
+| Step | Actual prompt or grouped clarification | Used for |
+|---|---|---|
+| Audit | Supplied “Act as a rigorous academic project auditor and data engineering reviewer…” request and course PDFs/repository | Requirements-based inspection and isolated verification; no initial submission edits |
+| Manual corrections | “I will work on each problem manually tell me what i should start fixing”; questions about the GitHub notebook, dataset size, Section 8 and remaining edits | Explaining ID handling and metric wording; these were guidance, not verified saved changes |
+| Hosting configuration | Request for free hosting without a credit card, local clone inspection, then selection of Vercel with manual deployment | Vercel configuration and local runtime smoke checks; no account changes or deployment |
+| Implementation | “Implement the remaining fixes.” | Notebook/code/narrative corrections, snapshot-based execution, regenerated website data and local verification |

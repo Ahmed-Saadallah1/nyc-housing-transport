@@ -779,7 +779,7 @@ zip_code,year,borough,affordable_units_completed,new_construction_units_complete
 10456,2023,Bronx,588,236,380,17,352
 10456,2024,Bronx,476,167,207,20,309
 10456,2025,Bronx,557,194,219,29,363
-10457,2014,Bronx,812,0,107,11,812
+10457,2014,Bronx,812,0,107,6,812
 10457,2015,Bronx,11,11,0,1,0
 10457,2016,Bronx,40,0,9,3,40
 10457,2017,Bronx,438,42,205,15,396
@@ -794,7 +794,7 @@ zip_code,year,borough,affordable_units_completed,new_construction_units_complete
 10458,2014,Bronx,114,0,0,3,114
 10458,2015,Bronx,191,0,3,6,191
 10458,2016,Bronx,60,0,0,4,60
-10458,2017,Bronx,784,7,267,16,777
+10458,2017,Bronx,784,7,267,11,777
 10458,2018,Bronx,224,224,195,4,0
 10458,2019,Bronx,259,100,108,4,159
 10458,2020,Bronx,200,176,48,4,24
@@ -914,7 +914,7 @@ zip_code,year,borough,affordable_units_completed,new_construction_units_complete
 10468,2014,Bronx,0,0,0,0,0
 10468,2015,Bronx,29,0,5,2,29
 10468,2016,Bronx,46,0,0,1,46
-10468,2017,Bronx,150,66,65,5,84
+10468,2017,Bronx,150,66,65,4,84
 10468,2018,Bronx,379,230,122,6,149
 10468,2019,Bronx,1481,136,66,8,1345
 10468,2020,Bronx,257,257,125,2,0
@@ -1216,7 +1216,7 @@ zip_code,year,borough,affordable_units_completed,new_construction_units_complete
 11208,2016,Brooklyn,2,0,0,1,2
 11208,2017,Brooklyn,51,0,51,14,51
 11208,2018,Brooklyn,190,60,31,8,130
-11208,2019,Brooklyn,0,0,0,4,0
+11208,2019,Brooklyn,0,0,0,0,0
 11208,2020,Brooklyn,102,102,40,2,0
 11208,2021,Brooklyn,37,28,18,7,9
 11208,2022,Brooklyn,437,432,350,7,5
@@ -1369,7 +1369,7 @@ zip_code,year,borough,affordable_units_completed,new_construction_units_complete
 11220,2025,Brooklyn,52,4,19,3,48
 11221,2014,Brooklyn,34,0,0,6,34
 11221,2015,Brooklyn,25,0,0,6,25
-11221,2016,Brooklyn,145,0,29,14,145
+11221,2016,Brooklyn,145,0,29,13,145
 11221,2017,Brooklyn,194,4,84,25,190
 11221,2018,Brooklyn,63,47,16,8,16
 11221,2019,Brooklyn,287,213,34,43,74
@@ -1503,7 +1503,7 @@ zip_code,year,borough,affordable_units_completed,new_construction_units_complete
 11233,2015,Brooklyn,5,0,0,1,5
 11233,2016,Brooklyn,1471,238,163,20,1233
 11233,2017,Brooklyn,630,182,376,61,448
-11233,2018,Brooklyn,361,158,146,28,203
+11233,2018,Brooklyn,361,158,146,27,203
 11233,2019,Brooklyn,69,16,0,12,53
 11233,2020,Brooklyn,79,30,44,11,49
 11233,2021,Brooklyn,106,70,23,12,36

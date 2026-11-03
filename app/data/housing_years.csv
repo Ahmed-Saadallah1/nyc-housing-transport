@@ -1,12 +1,12 @@
 borough,year,construction_type,buildings,affordable_units,deeply_affordable_units
 Bronx,2014,New Construction,26,26,3
-Bronx,2014,Preservation,44,1629,442
+Bronx,2014,Preservation,39,1629,442
 Bronx,2015,New Construction,21,31,2
 Bronx,2015,Preservation,48,1455,718
 Bronx,2016,New Construction,36,741,189
 Bronx,2016,Preservation,56,2163,970
 Bronx,2017,New Construction,43,953,399
-Bronx,2017,Preservation,143,5787,2514
+Bronx,2017,Preservation,137,5787,2514
 Bronx,2018,New Construction,62,3535,1595
 Bronx,2018,Preservation,55,2804,1597
 Bronx,2019,New Construction,68,3433,1268
@@ -28,13 +28,13 @@ Brooklyn,2014,Preservation,66,901,11
 Brooklyn,2015,New Construction,17,122,53
 Brooklyn,2015,Preservation,50,219,41
 Brooklyn,2016,New Construction,36,1252,495
-Brooklyn,2016,Preservation,136,3621,557
+Brooklyn,2016,Preservation,135,3621,557
 Brooklyn,2017,New Construction,64,1626,471
 Brooklyn,2017,Preservation,329,4497,1743
-Brooklyn,2018,New Construction,114,1606,340
+Brooklyn,2018,New Construction,113,1606,340
 Brooklyn,2018,Preservation,188,9436,5025
 Brooklyn,2019,New Construction,272,2925,494
-Brooklyn,2019,Preservation,108,1413,845
+Brooklyn,2019,Preservation,104,1413,845
 Brooklyn,2020,New Construction,116,2486,834
 Brooklyn,2020,Preservation,88,1984,1081
 Brooklyn,2021,New Construction,178,3688,930

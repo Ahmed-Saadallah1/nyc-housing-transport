@@ -4,26 +4,30 @@
 Data Engineering and Visualization — Winter Semester 2026 — Project Milestone 1
 German International University, Faculty of Informatics and Computer Science
 
-**Question:** Are New York's newest affordable homes — especially those for the lowest-income households — being built
-on the city's most dangerous streets, and does street safety around them change once residents move in?
+**Question:** Where do NYC affordable-housing production and recorded pedestrian harm overlap, and how do recorded crashes compare around sites and administrative completion dates?
 
 | | Link |
 |---|---|
-| Website (deployed) | **`<paste the website link here, e.g. https://USERNAME.pythonanywhere.com>`** |
+| Website (deployed) | Not deployed yet — add the verified Vercel URL after deployment |
 | Notebook | [`notebooks/Milestone1_Housing_Collisions.ipynb`](notebooks/Milestone1_Housing_Collisions.ipynb) |
 | Housing dataset | [Affordable Housing Production by Building (`hg8x-zxpr`)](https://data.cityofnewyork.us/Housing-Development/Affordable-Housing-Production-by-Building/hg8x-zxpr) |
 | Transportation dataset | [Motor Vehicle Collisions – Crashes (`h9gi-nx95`)](https://data.cityofnewyork.us/Public-Safety/Motor-Vehicle-Collisions-Crashes/h9gi-nx95) |
 
-## Key findings
+## Findings and scope
 
-* ZIP codes with the most new affordable housing have crashes that hurt pedestrians far more often (7.2 vs 4.3 per 100
-  crashes, top vs bottom quarter; Spearman ρ ≈ 0.45).
-* Even inside the same ZIP code, crashes within 250 m of an affordable building hurt a pedestrian more often in 78% of
-  ZIP codes (Wilcoxon p < 0.001).
-* 20 hotspot ZIP codes combine heavy affordable production with high pedestrian harm (mostly the Bronx, Harlem, the
-  Lower East Side and central Brooklyn).
-* Crashes around newly completed buildings change at the same pace as the city: the issue is *where* homes are built.
-* These are associations, not causes; rates are per crash because neither dataset contains population.
+* Higher-production ZIP codes had higher pedestrian casualties per reported crash in the notebook comparison.
+  Production includes new construction and preservation; casualties count people, not the percentage of crashes.
+* Within-ZIP comparisons found a positive near-site pedestrian-involvement difference in most eligible ZIPs.
+* New-construction sites had higher historical nearby recorded crash counts than preservation sites. This does not
+  measure street busyness or traffic volume.
+* Upper-quartile production and pedestrian casualties per crash provide a descriptive shortlist for further HPD/DOT review.
+* Completion-window and next-year-growth comparisons do not establish causal effects or validated predictive performance.
+
+The spatial inventory is retrospective: sites may be unfinished or completed after a crash. Only housing records with
+known affordable counts enter unit/site analyses; unknown totals remain missing in the cleaned source. Overlapping
+buffers, estimated ZIPs, reporting changes and missing locations limit inference. Population, occupancy, residents’
+travel modes and pedestrian/traffic exposure are not measured. Exact results and snapshot hashes are in the executed
+notebook; website tables must be regenerated from those outputs.
 
 ## Repository structure
 
@@ -46,7 +50,11 @@ nyc-housing-transport/
 ├── deploy/
 │   ├── pythonanywhere_wsgi.py          # WSGI entry point for PythonAnywhere
 │   └── requirements-pythonanywhere.txt # packages to install on PythonAnywhere
-├── render.yaml             # alternative: Render deployment blueprint
+├── wsgi.py                 # Flask entry point for Vercel
+├── pyproject.toml          # Vercel website dependencies and Python version
+├── vercel.json             # Vercel framework and function configuration
+├── .vercelignore           # excludes notebooks and large source data from deployment
+├── render.yaml             # optional legacy Render deployment blueprint
 ├── requirements.txt        # notebook dependencies
 └── README.md
 ```
@@ -57,17 +65,23 @@ nyc-housing-transport/
 1. Open [colab.research.google.com](https://colab.research.google.com) → **File → Upload notebook** →
    `notebooks/Milestone1_Housing_Collisions.ipynb`.
 2. **Runtime → Run all.** Allow Google Drive access when asked.
-3. The first run downloads the data from the NYC Open Data API (≈ 10 minutes for 1.96 M crashes) and stores it in
-   `My Drive/nyc-housing-transport/data/raw`; later runs load the saved snapshot in seconds. The whole notebook then
-   runs in about 5 minutes and needs about 5 GB of memory (the free Colab tier is enough).
+3. The first run downloads housing and crashes since 2014 from NYC Open Data into
+   `My Drive/nyc-housing-transport/data/raw`. Later runs reuse these Parquet snapshots. Keep the cache and share
+   the exact files explicitly with teammates; separate MyDrive folders do not automatically share data.
+   Runtime and memory depend on the snapshot and Colab allocation; a large download can take several minutes.
 4. The cleaned and integrated tables are written to `My Drive/nyc-housing-transport/data/processed`.
 
 ### 2. Run locally (optional)
 ```bash
-python -m venv .venv && source .venv/bin/activate        # Windows: .venv\Scripts\activate
+python3.13 -m venv .venv && source .venv/bin/activate        # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
-jupyter notebook notebooks/Milestone1_Housing_Collisions.ipynb   # outside Colab, data is stored in ./data
+jupyter notebook notebooks/Milestone1_Housing_Collisions.ipynb
 ```
+
+The notebook locates the cloned repository from its working directory or a parent directory and writes to the
+repository's `data/`. Cached files without retrieval sidecars are explicitly labelled as having an unknown retrieval
+timestamp; file modification time is not substituted. SHA-256 fingerprints and validation time are always reported.
+New downloads record request parameters and retrieval time. Do not delete a working cache merely to rerun a correction.
 
 ### 3. Run the website locally
 ```bash
@@ -75,7 +89,7 @@ pip install -r app/requirements.txt
 python app/app.py                 # open http://127.0.0.1:8050
 ```
 The website reads only the small tables in `app/data/`: the Parquet files when `pyarrow` is installed, otherwise the
-identical CSV copies (this is what PythonAnywhere uses). To rebuild them after re-running the notebook, download the
+identical CSV copies. Vercel uses these CSV copies to avoid installing pyarrow. To rebuild them after re-running the notebook, download the
 four Parquet files from `My Drive/nyc-housing-transport/data/processed` into the repository's `data/processed/`
 folder and run (requires `scikit-learn`):
 ```bash
@@ -88,51 +102,48 @@ python app/prepare_data.py
 |---|---|
 | Multiple dropdown filters | Borough, Year, Housing type (housing category), Who was hurt (road-user category), Crash severity |
 | Search mode | Free text such as `Brooklyn 2022 new buildings` sets the dropdowns automatically (filters not mentioned go back to their defaults) |
-| "Generate Report" button | Rebuilds every chart and summary number from the selected filters; a hint appears when the filters change |
+| "Generate Report" button | Applies relevant filters; trend/production highlight the selected year. Housing-only metrics ignore crash filters; building hovers are explicitly fixed historical averages |
 | Variety of interactive charts | Map, scatter plot, line chart, heatmap, bar chart — all with hover, zoom and legend toggling |
 | Relationship between the two domains | The map overlays affordable buildings on ZIP-code crash harm; the scatter plot relates affordable units to people hurt per crash |
 | Story section | The question, findings, limitations and benefit for NYC |
 
-## Deployment (PythonAnywhere, free account)
+## Deployment (Vercel Hobby)
 
-The website is hosted on [PythonAnywhere](https://www.pythonanywhere.com). A free account allows one web app at
-`https://USERNAME.pythonanywhere.com`, which stays awake (no cold start for visitors). The app needs no `pyarrow` there:
-it reads the CSV copies in `app/data/`.
+The repository is configured to run the existing Dash website through its Flask server on Vercel.
+The notebook is not executed during deployment. The website reads the committed CSV tables in `app/data/`.
 
-**1. Create the account.** Sign up for a free *Beginner* account. The username becomes the address of the website.
+1. Push the reviewed changes to GitHub, then import `Ahmed-Saadallah1/nyc-housing-transport` in Vercel.
+2. Select your personal **Hobby** plan, not a Pro trial or paid team.
+3. Use these project settings:
 
-**2. Get the code and install the packages.** Open **Consoles → Bash** and run:
-```bash
-git clone --depth 1 https://github.com/Ahmed-Saadallah1/nyc-housing-transport.git
-cd nyc-housing-transport
-pip3.13 install --user --no-cache-dir -r deploy/requirements-pythonanywhere.txt
-```
-(`--no-cache-dir` keeps the download cache out of the 512 MB disk quota.)
+   | Setting | Value |
+   |---|---|
+   | Root Directory | Repository root (`./`), not `app` |
+   | Framework Preset | Flask |
+   | Build Command | Leave unset; do not run the notebook or data preparation |
+   | Install Command | Leave unset; Vercel reads `pyproject.toml` |
+   | Output Directory | Leave unset |
+   | Environment Variables | None required |
 
-**3. Create the web app.** Open the **Web** tab → **Add a new web app** → **Next** → **Manual configuration** (not
-"Flask") → **Python 3.13** → **Next**.
+4. Select **Deploy**. `pyproject.toml` selects Python 3.13 and `wsgi:app`, which exports Dash's Flask server.
+   `.vercelignore` excludes the notebook, raw/processed data, and unused Parquet copies from the upload.
+5. Open the generated `https://<project>.vercel.app` URL. Test every dropdown, the search
+   `Brooklyn 2022 new buildings`, **Generate Report**, chart hover/zoom, and a sparse selection on desktop and phone.
+   Check Vercel runtime logs if a page or callback fails.
+6. Replace the deployment status at the top of this README with the actual tested URL.
+   Verify that a signed-out visitor can open the production site without Vercel authentication.
 
-**4. Point it at the Dash app.** On the Web tab, open the **WSGI configuration file** link, delete everything in it,
-paste the contents of [`deploy/pythonanywhere_wsgi.py`](deploy/pythonanywhere_wsgi.py), replace `YOUR_USERNAME` with
-your PythonAnywhere username, and **Save**.
+No API keys, database, custom domain, notebook runtime, or payment method is needed by the application.
+If signup requests a payment method, stop and check that you selected Hobby; do not activate a paid plan.
+Hobby usage limits apply. After connecting GitHub, pushes to the configured production branch trigger redeployment.
 
-**5. Go live.** Back on the Web tab, select **Reload**, then open `https://USERNAME.pythonanywhere.com`.
+The root `pyproject.toml` declares only Vercel runtime dependencies. Keep using `requirements.txt` for notebook
+execution and `app/requirements.txt` for the existing local website setup. Vercel serves the Dash component bundles
+and `app/assets/style.css` through the Flask application.
 
-**6. Test** the live site: change every dropdown, try the search box (e.g. `Brooklyn 2022 new buildings`), select
-**Generate Report**, hover and zoom the charts, and open it on a phone.
-
-**Keep it online for grading.** Free web apps switch off after one month unless renewed. On the Web tab, select
-**"Run until 1 month from today"** on the submission day (9 November 2026) so the site stays up while it is graded.
-
-**Troubleshooting.** If the page shows an error, open the **Error log** link on the Web tab. The most common cause is
-a wrong path or username in the WSGI file.
-
-**Updating the site.** After pushing changes to GitHub: in the Bash console run `cd ~/nyc-housing-transport && git pull`,
-then select **Reload** on the Web tab.
-
-### Alternative: Render
-`render.yaml` deploys the same app on [Render](https://render.com) (**New → Blueprint** → select this repository). The
-free plan sleeps after 15 minutes without visits, so the first page load can take about a minute.
+References: [Flask on Vercel](https://vercel.com/docs/frameworks/backend/flask),
+[Python version](https://vercel.com/docs/functions/runtimes/python/python-version),
+[Hobby plan](https://vercel.com/docs/plans/hobby).
 
 ## Member contributions
 
@@ -147,5 +158,5 @@ free plan sleeps after 15 minutes without visits, so the first page load can tak
 
 ## AI use
 
-An AI assistant (Claude, by Anthropic) was used for planning, code drafting, verification and writing. All prompts are
+Claude was used for initial planning, drafting and writing. Codex was used for corrective review, implementation and local verification. Documented prompts are
 listed in [`docs/prompt_log.md`](docs/prompt_log.md) and in Section 11 of the notebook.

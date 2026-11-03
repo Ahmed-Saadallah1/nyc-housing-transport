@@ -9,13 +9,17 @@ Output (committed to the repository):          app/data/*.parquet and app/data/*
 Run from the repository root:  python app/prepare_data.py
 """
 import os
+from pathlib import Path
+
+from numpy.typing import NDArray
 
 import numpy as np
 import pandas as pd
 from sklearn.neighbors import BallTree
 
-PROCESSED = os.path.join("data", "processed")
-OUT = os.path.join("app", "data")
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+PROCESSED = PROJECT_ROOT / "data" / "processed"
+OUT = PROJECT_ROOT / "app" / "data"
 EARTH_RADIUS_M = 6_371_000
 BUFFER_M = 250
 FULL_YEARS = list(range(2014, 2026))
@@ -25,7 +29,7 @@ collisions = pd.read_parquet(os.path.join(PROCESSED, "collisions_clean.parquet")
 buildings = pd.read_parquet(os.path.join(PROCESSED, "buildings_exposure.parquet"))
 housing = pd.read_parquet(os.path.join(PROCESSED, "housing_clean.parquet"))
 zip_panel = pd.read_parquet(os.path.join(PROCESSED, "zip_year_panel.parquet"))
-residential_zips = set(zip_panel["zip_code"])
+analysis_zips = set(zip_panel["zip_code"])
 
 crashes = collisions[collisions["crash_year"].isin(FULL_YEARS)].copy()
 crashes["motorist_casualties"] = crashes["number_of_motorist_injured"] + crashes["number_of_motorist_killed"]
@@ -33,7 +37,10 @@ crashes["all_casualties"] = crashes["number_of_persons_injured"] + crashes["numb
 
 
 # ---- Distance from each crash to the nearest new-construction and preservation building ----
-def nearest_distance(points, targets):
+def nearest_distance(points: pd.DataFrame, targets: pd.DataFrame) -> NDArray[np.float64]:
+    """Return haversine distance in metres to the fixed retrospective site inventory."""
+    if targets.empty:
+        raise ValueError("No mapped sites for the selected construction type; inspect buildings_exposure.parquet.")
     tree = BallTree(np.radians(targets[["latitude", "longitude"]].to_numpy()), metric="haversine")
     distance, _ = tree.query(np.radians(points[["latitude", "longitude"]].to_numpy()), k=1)
     return distance[:, 0] * EARTH_RADIUS_M
@@ -59,8 +66,8 @@ crash_cube = (crashes.assign(borough=crashes["borough"].fillna("Unknown"))
                         "near_new_construction", "near_preservation", "severity"], observed=True)
               .agg(**MEASURES).reset_index().rename(columns={"crash_year": "year"}))
 
-# ---- 2. ZIP x year x severity crash table (residential ZIP codes, as in the notebook) ----
-zip_crashes = (crashes[crashes["zip_code"].isin(residential_zips)]
+# ---- 2. ZIP x year x severity crash table (retained analytical ZIP codes, as in the notebook) ----
+zip_crashes = (crashes[crashes["zip_code"].isin(analysis_zips)]
                .groupby(["zip_code", "crash_year", "severity"]).agg(**MEASURES).reset_index()
                .rename(columns={"crash_year": "year"}))
 
@@ -72,7 +79,7 @@ zip_housing["preservation_units_completed"] = (zip_housing["affordable_units_com
                                                - zip_housing["new_construction_units_completed"])
 zip_centres = (collisions.dropna(subset=["zip_code", "latitude"]).groupby("zip_code")[["latitude", "longitude"]]
                .median().reset_index())
-zip_centres = zip_centres[zip_centres["zip_code"].isin(residential_zips)]
+zip_centres = zip_centres[zip_centres["zip_code"].isin(analysis_zips)]
 
 # ---- 4. Buildings (one row per mappable building) ----
 building_cols = ["building_id", "latitude", "longitude", "borough", "zip_code", "construction_type",
@@ -81,7 +88,7 @@ building_cols = ["building_id", "latitude", "longitude", "borough", "zip_code", 
 buildings_out = buildings[building_cols].copy()
 
 # ---- 5. Housing by borough x completion year x type (includes confidential records, which have no location) ----
-housing_years = (housing[housing["completion_year"].isin(FULL_YEARS)]
+housing_years = (housing[housing["completion_year"].isin(FULL_YEARS) & housing["affordable_units_known"]]
                  .groupby(["borough", "completion_year", "reporting_construction_type"])
                  .agg(buildings=("project_id", "size"), affordable_units=("all_counted_units", "sum"),
                       deeply_affordable_units=("deeply_affordable_units", "sum"))
@@ -91,14 +98,14 @@ housing_years["year"] = housing_years["year"].astype(int)
 
 outputs = {"crash_cube": crash_cube, "zip_crashes": zip_crashes, "zip_housing": zip_housing,
            "zip_centres": zip_centres, "buildings": buildings_out, "housing_years": housing_years}
-for name, table in outputs.items():
-    path = os.path.join(OUT, f"{name}.parquet")
-    table.to_parquet(path, index=False)
-    table.to_csv(path.replace(".parquet", ".csv"), index=False)  # CSV copy for hosts without pyarrow
-    print(f"{name:<14} {len(table):>8,} rows  {os.path.getsize(path) / 1e6:6.2f} MB")
-
 # Reconciliation with the notebook: totals must match
 assert crash_cube["crashes"].sum() == len(crashes)
 assert zip_crashes["crashes"].sum() == zip_panel["crashes"].sum()
 assert zip_housing["affordable_units_completed"].sum() == zip_panel["affordable_units_completed"].sum()
 print("Reconciliation checks passed.")
+
+for name, table in outputs.items():
+    path = os.path.join(OUT, f"{name}.parquet")
+    table.to_parquet(path, index=False)
+    table.to_csv(path.replace(".parquet", ".csv"), index=False)  # CSV copy for hosts without pyarrow
+    print(f"{name:<14} {len(table):>8,} rows  {os.path.getsize(path) / 1e6:6.2f} MB")

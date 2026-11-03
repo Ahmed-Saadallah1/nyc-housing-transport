@@ -202,10 +202,13 @@ def map_figure(f):
                              buildings["pedestrian_casualties_per_year"]],
             hovertemplate=("<b>%{text}</b><br>%{customdata[0]:,.0f} affordable units"
                            "<br>completed %{customdata[1]:.0f}"
-                           "<br>%{customdata[2]:.1f} pedestrians hurt per year within 250 m<extra></extra>")))
+                           "<br>%{customdata[2]:.1f} pedestrian casualties/year within 250 m"
+                           "<br>Fixed 2014–2025 average; year, road-user and severity filters do not apply"
+                           "<extra></extra>")))
     centre = ({"lat": zips["latitude"].mean(), "lon": zips["longitude"].mean()} if f["borough"] != "all" and len(zips)
               else {"lat": 40.71, "lon": -73.93})
-    fig.update_layout(map={"style": MAP_STYLE, "center": centre, "zoom": 10.4 if f["borough"] != "all" else 9.4})
+    fig.update_layout(map={"style": MAP_STYLE, "center": centre, "zoom": 10.4 if f["borough"] != "all" else 9.4},
+                      uirevision=f"housing-sites-{f['borough']}")
     return base_layout(fig, 520, legend={"orientation": "h", "y": 1.02, "x": 0, "bgcolor": "rgba(255,255,255,0.8)"},
                        margin={"l": 0, "r": 0, "t": 0, "b": 0})
 
@@ -303,7 +306,9 @@ def kpis(f):
     cube = filter_cube(f)
     measure, who = ROAD_USERS[f["road_user"]]
     located = cube[cube["located"]]
-    near_share = located.loc[located["near"], measure].sum() / max(located[measure].sum(), 1)
+    located_casualties = located[measure].sum()
+    near_share = (f"{located.loc[located['near'], measure].sum() / located_casualties:.0%}"
+                  if located_casualties > 0 else "N/A")
     h = HOUSING_YEARS
     if f["borough"] != "all":
         h = h[h["borough"] == f["borough"]]
@@ -314,8 +319,8 @@ def kpis(f):
     return [
         (f"{cube['crashes'].sum():,}", "crashes"),
         (f"{cube[measure].sum():,}", f"{who} injured or killed"),
-        (f"{near_share:.0%}", f"of {who} hurt were within 250 m of affordable housing"),
-        (f"{h['affordable_units'].sum():,}", "affordable units completed"),
+        (near_share, f"of located casualties among {who} were within 250 m of snapshot housing sites"),
+        (f"{h['affordable_units'].sum():,}", "affordable units completed (known counts)"),
     ]
 
 
@@ -357,7 +362,7 @@ app.layout = html.Div(className="page", children=[
             html.Div("Homes on Dangerous Streets?", className="sign-name"),
             html.Div("Affordable housing and traffic crashes in New York City, 2014 – 2025", className="sign-sub")]),
         html.P(className="lede", children=[
-            "Are New York's newest affordable homes being built on the streets where crashes hurt people most? "
+            "Where do affordable-housing production and recorded crash harm overlap? "
             "Pick a borough, a year and who was hurt, then generate a report. ",
             html.A("Read the story", href="#story")]),
     ]),
@@ -396,12 +401,13 @@ app.layout = html.Div(className="page", children=[
 
     html.Div(className="grid", children=[
         card("Where homes and dangerous streets meet",
-             "Red circles: ZIP codes, darker where crashes hurt the selected group more often. "
-             "Blue dots: affordable buildings, sized by affordable units.", "map", wide=True),
+             "Red circles: casualties per 100 reported crashes in eligible ZIPs (20+ selected crashes). "
+             "Blue dots: housing sites, sized by known affordable units; year selects site completion year.", "map", wide=True),
         card("More affordable housing, more harm per crash?",
              "Each dot is a ZIP code: affordable units completed vs. people hurt per 100 crashes.", "scatter"),
         card("Near vs. far from affordable housing, year by year",
-             "People hurt per 100 crashes, within 250 m of an affordable building vs. elsewhere.", "trend"),
+             "Casualties per 100 crashes near snapshot housing sites vs. elsewhere. "
+             "All years are shown; the selected year is highlighted.", "trend"),
         card("When people are hurt near affordable housing",
              "Share of the selected group hurt within 250 m, by weekday and hour (unknown times excluded).",
              "heatmap"),
@@ -414,37 +420,40 @@ app.layout = html.Div(className="page", children=[
         html.H2("The story"),
         html.Div(className="story-grid", children=[
             html.Div([html.H3("The question"), html.P(
-                "Households in deeply affordable homes are the least likely to own a car. If those homes sit on the "
-                "streets where crashes most often hurt people on foot, the people with the fewest alternatives "
-                "carry the most risk. We linked 9,551 HPD affordable-housing records with 1.96 million NYPD crash "
-                "reports (2014 – 2025) by ZIP code and year, and by distance: every crash within 250 m of each of "
-                "7,470 affordable buildings.")]),
+                f"Where do affordable-housing production and recorded pedestrian harm overlap? We compare "
+                f"{CRASH_CUBE['crashes'].sum():,} reported crashes in 2014–2025 with housing production by ZIP/year "
+                f"and historical conditions near {len(BUILDINGS):,} mapped housing sites with known unit counts. "
+                "The site inventory is retrospective: a site need not have been completed when a crash occurred.")]),
             html.Div([html.H3("What we found"), html.Ul([
-                html.Li("ZIP codes with the most new affordable housing have crashes that hurt pedestrians far more "
-                        "often: 7.2 per 100 crashes in the top quarter vs. 4.3 in the bottom quarter."),
-                html.Li("Even inside the same ZIP code, crashes within 250 m of an affordable building hurt a "
-                        "pedestrian more often in 78% of ZIP codes."),
-                html.Li("20 hotspot ZIP codes combine heavy affordable production with high pedestrian harm — "
-                        "mostly in the Bronx, Harlem, the Lower East Side and central Brooklyn."),
-                html.Li("New construction sits on busier streets than preservation — more than twice as busy in "
-                        "Queens."),
-                html.Li("Crashes around new buildings change at the same pace as the city after completion: the "
-                        "issue is where homes are built, not what they do to the street."),
+                html.Li("Higher-production ZIP codes had higher pedestrian casualties per reported crash in the "
+                        "notebook comparison. Production includes new construction and preservation."),
+                html.Li("Within-ZIP comparisons also found a positive near-site pedestrian-involvement difference "
+                        "in most eligible ZIP codes; this outcome counts crashes, not people."),
+                html.Li("ZIP codes in the top quarter for both production and pedestrian casualties per crash "
+                        "provide a descriptive shortlist for joint housing and street-safety review."),
+                html.Li("New-construction sites had higher historical nearby recorded crash counts than "
+                        "preservation sites; counts do not measure traffic volume."),
+                html.Li("Completion-window and next-year-growth comparisons do not establish a causal housing "
+                        "effect or demonstrate that a predictive model would fail."),
             ])]),
             html.Div([html.H3("What the data cannot tell us"), html.Ul([
-                html.Li("These are associations, not causes: dense, walkable neighbourhoods have both more "
-                        "affordable housing and more pedestrian crashes."),
-                html.Li("Rates are per crash, not per resident — neither dataset includes population or traffic."),
-                html.Li("Police reporting of minor crashes fell after 2020, so later years show more injury per "
-                        "crash; 8% of crashes could not be located."),
+                html.Li("These are exploratory associations. Neighbourhood characteristics, reporting changes "
+                        "and overlapping site buffers can affect comparisons and statistical tests."),
+                html.Li("Casualties per 100 crashes count people, not the percentage of crashes involving a casualty. "
+                        "Population, traffic volume, occupancy and residents’ travel modes are not measured."),
+                html.Li("Near/far statistics use the full included site inventory, including unfinished or later-completed "
+                        "sites. Map dots use the selected completion year; historical pedestrian hover averages stay fixed."),
+                html.Li("Unlocated crashes, confidential housing and unknown unit totals limit coverage. "
+                        "ZIP charts use retained eligible ZIPs; KPI totals include all selected reports. "
+                        "Recovered ZIP codes are estimates; midnight flags are a time-quality assumption."),
             ])]),
             html.Div([html.H3("Why it matters for New York"), html.Ul([
-                html.Li("NYC DOT / Vision Zero: prioritise the hotspot ZIP codes and the blocks around affordable "
-                        "buildings — with night-time lighting and speed control, safe bus stops and protected "
-                        "space for bikes."),
+                html.Li("NYC DOT / Vision Zero: use the descriptive shortlist to prioritise field reviews, "
+                        "then assess appropriate street-safety measures using local conditions and exposure."),
                 html.Li("HPD and developers: add a street-safety review to site selection, so safety improvements "
                         "arrive together with the residents."),
-                html.Li("Advocates: the need follows location, so safety funding should follow location too."),
+                html.Li("Advocates: use these patterns to request further investigation; this analysis alone "
+                        "does not establish intervention priorities or the distribution of personal risk."),
             ])]),
         ]),
     ]),

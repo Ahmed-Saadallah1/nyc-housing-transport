@@ -1,79 +1,73 @@
-# Data Findings Log (observations to address in EDA / cleaning)
+# Verified data and analytical scope
 
-## Snapshot (downloaded 2026-10-14)
-- Housing (hg8x-zxpr): 9,551 rows x 41 columns (full dataset, no filter)
-- Collisions (h9gi-nx95): full dataset 2,269,187 rows; since 2014-01-01: 1,964,900 rows (86.6%) x 29 columns
-- Completeness check passed for both (downloaded rows == server count)
+Local verification: 3 November 2026. The corrected notebook completed all 45 code cells from a fresh kernel using
+cached public snapshots, followed by website preparation with reconciliation checks. This is not a Colab or live-hosting test.
+The cache was downloaded during the 2 November audit; an exact retrieval timestamp was not recorded by the old loader.
+The notebook reports this explicitly rather than substituting file modification time. New downloads write retrieval sidecars.
 
-## Housing observations (from head())
-- One row per building; a project can have multiple buildings (e.g., project 72449 has 3+ rows) -> count buildings vs projects separately
-- project_completion_date NaN for recently started projects (start 2026-06-30) -> meaningful missing (in-progress), keep
-- bin = 4000000 -> NYC "million BIN" placeholder (1000000/2000000/3000000/4000000/5000000) = no BIN assigned -> hidden missing
-- Dates stored as text "YYYY-MM-DDT00:00:00.000" -> convert
-- postcode/bbl/bin as text (by design)
+## Snapshot identity
 
-## Collisions observations (from head())
-- API field names off_street_name / cross_street_name are SWAPPED vs content:
-  off_street_name holds cross streets (e.g., ROCKAWAY BOULEVARD); cross_street_name holds off-street addresses (e.g., "745 MANHATTAN AVENUE")
-  (metadata: fieldName off_street_name has display name "CROSS STREET NAME", cross_street_name has display "OFF STREET NAME") -> rename
-- Rows with no borough/zip/coords (e.g., ALEXANDER HAMILTON BRIDGE) -> unlocatable
-- Rows with coords but no borough/zip -> recoverable via spatial lookup
-- Multiple internal spaces in street text ("745       MANHATTAN AVENUE") -> normalize whitespace
-- Inconsistent case in vehicle types (AMBULANCE / Van / Bus) -> standardize
-- "Unspecified" in contributing factors -> hidden missing
-- location column redundant with latitude/longitude -> drop with justification
-- crash_time format "H:MM" without leading zero; check midnight 0:00 over-representation (possible default/unknown time)
-- Rows are ordered by :id, not chronologically
+| Dataset | Rows | Columns | SHA-256 of cached Parquet |
+|---|---:|---:|---|
+| `hg8x-zxpr` | 9,551 | 41 | `386f2f1bba65690fdb2cbb6bd03e1ba48d68b6d304806214f1fb871edbfe1586` |
+| `h9gi-nx95` | 1,997,357 | 29 | `1111eaacf30f4454018563f14dc88ce49396d19f3b5a50b84f922304cec1cdc9` |
 
-## Full profile (run on the attached snapshot, pandas 2.2.3)
-### Housing
-- 5,928 projects; 7,478 distinct building_ids; 0 fully duplicated rows; 0 duplicate (project_id, building_id)
-- Dates: project_start 2014-01-03 -> 2026-06-30; project_completion 2014-01-03 -> 2026-08-11 (19.0% missing); building_completion 2014-01-03 -> 2026-08-21 (17.4% missing)
-- 1,949 rows "CONFIDENTIAL": house_number/street_name = "----" (hidden missing), no building_id/bin/bbl/postcode/coords; community_board present
-- 9 non-confidential rows missing coords/postcode (e.g., ARVERNE EAST) -> 1,958 rows missing lat/lon/postcode/census tract/NTA (20.5%)
-- 482 "million BIN" placeholders
-- Unit columns: NaN never co-occurs with explicit '0' -> NaN means 0 units; income-band sum == all_counted_units for 100% of rows
-- all_counted_units missing 29 rows; total_units no zeros, max 1,320; sum 445,588
-- latitude_internal missing 86 rows where latitude present
-- Borough: Brooklyn 3,649 / Bronx 2,630 / Manhattan 1,485 / Queens 1,342 / Staten Island 445
-- New Construction 4,766 vs Preservation 4,785
-### Collisions
-- Dates 2014-01-01 -> 2026-06-11 (2026 is partial: 36,424 rows) ; 2020 sharp drop (COVID) 231k(2018)->113k(2020)
-- borough missing 31.6% (620,645), zip missing 31.6% (620,931), lat/lon missing 9.9% (193,919)
-- 7,590 rows at (0,0); 7,740 rows with coords outside NYC bbox (incl the (0,0))
-- 20 zip codes made of blank spaces -> hidden missing
-- 1,590 rows duplicated on every column except collision_id
-- number_of_persons_injured missing 18; number_of_persons_killed missing 8,913; sub-columns (ped/cyc/mot) complete -> can recompute
-- vehicle_type_code1: 1,905 distinct values (messy); contributing_factor_vehicle_1: 66 values
-- Midnight 0:00 = 1.25% (24,529), comparable to peak 16:00 (25,920) -> mild over-representation, check
-- off_street_name (42.1% missing) holds cross streets; cross_street_name (79.7% missing, 265,710 unique) holds addresses -> swap confirmed
-- on_street_name has trailing spaces (e.g., '111 STREET        ') -> strip
+Housing has no server filter; crashes use `crash_date >= '2014-01-01T00:00:00'`, ordered by `:id` during pagination.
+The cached crash snapshot ends 27 October 2026. Full-year comparisons use 2014–2025; fully observed before/after
+windows can use partial 2026. API revisions can change results on a fresh download; these hashes identify this run.
+The generated `data/processed/snapshot_manifest.json` includes the verification timestamp and fingerprints.
 
-## EDA findings (Section 3)
-- 24,529 crashes at exactly 0:00 vs ~757 per other minute of hour 0 (32x) -> placeholder time
-- persons_injured total 673,772 > ped+cyc+mot 662,808; killed 3,183 vs 3,131 -> totals include other persons; check in cleaning
-- Confidential housing records: median 1 unit (single homes); non-confidential NC median 24, P median 18
-- IQR flags 1,171 buildings > 108 units: real large developments, keep
-- 150 non-(0,0) points outside NYC (lon as low as -201)
-- Borough preview: Bronx 27.7% units vs 16.8% ped casualties; Queens 14.2% vs 24.4%
+## Counts and exclusions
 
-## CORRECTION (data dictionary)
-- total_units = affordable + market-rate; all_counted_units = affordable only (320,946 of 445,588 = 72.0%; 2,752 mixed-income buildings)
-- Affordable units by borough: Bronx 106,661 (33.2%), Brooklyn 90,784 (28.3%), Manhattan 74,338 (23.2%), Queens 42,952 (13.4%), SI 6,211 (1.9%)
-- Unit columns perfectly consistent: income sum == bedroom sum == rental+ownership == all_counted for all 9,522 rows; 29 rows all_counted missing with no breakdown
-- Housing dates: start>project completion 5 rows; start>building completion 20 rows; 166 rows building completed but project not
-- 123 building_ids appear in 2 projects (re-financed/phased); 121 same type
-- Collisions: duplicates 1,590 = same date/minute/location/vehicles/injuries, different id -> double-entered; drop keeping lowest id
-- persons_killed missing 8,877 in 2026 alone (publisher stopped filling) -> impute from sum of parts; totals<parts: 227 injured, 6 killed
-- factor junk numeric codes ('1','35','36','37','52','70','80') and spelling variants (Illnes, Cell Phone (hand-Held), Drugs (Illegal), Reaction to Other Uninvolved Vehicle)
-- ZIP: 235 values; invalid 10803 (Westchester), 12345; 463,458 crashes have valid coords but no zip; 157,493 no coords & no zip
-- KNN (10% holdout): zip k=1 99.56%, k=5 99.44%, k=15 99.03%; borough k=5 99.9%
+- Housing source records: **9,551**.
+- Unknown housing affordable totals retained missing: **29**.
+- Cleaned crash records: **1,995,758**.
+- Crashes in 2014–2025: **1,926,923**.
+- Located 2014–2025 crashes: **1,726,928**.
+- Mapped sites with known affordable counts: **7,447**.
+- Crashes in retained ZIP panel: **1,768,254**.
+- Completed known affordable units in ZIP panel: **223,910**.
 
-## Step 4 results
-- Collisions: 1,964,900 -> 1,963,310 rows (1,590 duplicates removed); 34 columns saved
-- ZIP missing 620,290 -> 157,223 (8.0%) via kNN (k=1, 99.58% holdout); borough 619,982 -> 157,192 (k=5, 99.90%)
-- Invalid coords -> NaN: 7,589 (0,0) + 150 outside; casualty totals fixed: injured 18 filled + 223 raised; killed 8,908 filled + 6 raised
-- Severity: PDO 1,462,605 / Injury 497,630 / Fatal 3,075; time_unknown 24,521; partial year 2026 36,410
-- 17 crashes with 20+ injured: 12 involve a bus
-- Housing: 49 columns saved; 106,309 empty unit cells -> 0; all consistency checks 100%; Marble Hill 5 rows ZIP 10463 borough Manhattan (correct)
-- Completed 7,898 / In progress 1,653; 21 rows start after completion (flagged); 247 rows in multi-project buildings
+Unknown housing totals are not zero-filled. Sparse breakdowns are filled only where the affordable total is observed;
+unknown-total records remain in cleaned housing and are explicitly excluded from unit/site analyses. Confidential
+housing can contribute to borough summaries when its total is known, but cannot enter ZIP/site analyses.
+Crash-ID strings are opaque identifiers. Suspected duplicate reports match every raw non-ID field; retaining the
+lexicographically first ID is deterministic, not chronological or publisher confirmation of duplication.
+Exactly-midnight times are suspected placeholders; only timing analyses exclude them. Factors and vehicle categories
+are recorded assessments; RQ9 is restricted to vehicle slots 1 and 2.
+
+ZIPs with fewer than 120 crashes over 12 years and invalid code 10000 are excluded for analytical stability;
+this is not a verified residential land-use classification. Geographic imputations remain flagged. Random-row holdout
+accuracy does not establish performance on the missing-location population, because spatial leakage can occur.
+
+## Verified findings
+
+- RQ1: Spearman rho **0.4515**; observed-ZIP-only sensitivity rho **0.4709** (coverage differs).
+- RQ1 quartile medians: **4.37 vs 7.16 pedestrian casualties per 100 reported crashes** (lowest vs highest production quarter).
+- RQ10: **20** upper-quartile overlap ZIPs.
+- RQ11: **145** ZIPs; positive near-minus-far pedestrian-involved-crash difference in **79.3%**; median **+1.44 percentage points**.
+- RQ3: 36 valid zero-after cases are included; new-construction median relative ratio **1.002**, exploratory sign-test p **0.895**. Zero-before ratios remain undefined.
+- RQ12: rho **0.0196**, exploratory p **0.390** across 1,918 retained ZIP-years.
+
+All comparisons are descriptive. The site inventory is retrospective, includes unfinished/later-completed sites and
+uses known unit totals; it does not measure post-occupancy resident exposure. Overlapping buffers share crashes;
+spatial and repeated-year dependence limit conventional p-values. Population, traffic/pedestrian exposure, occupancy
+and residents’ transport choices are unmeasured. No null test establishes equivalence, no effect, or predictive failure.
+
+## Reproduction and hosting boundary
+
+Keep `data/raw/` for repeat runs; it is intentionally excluded from Git and Vercel. To reproduce this exact run on
+another machine, explicitly transfer those same cache files and verify the hashes above. Otherwise the notebook
+downloads current API data and records a different snapshot. Run all notebook cells, then `python app/prepare_data.py`.
+The small website CSV and Parquet tables are regenerated from that notebook run and committed together.
+Vercel configuration is prepared locally; deployment, public access and actual Colab execution remain unverified.
+
+## Local website verification
+
+- All six generated CSV/Parquet pairs agree in values, allowing CSV dtype/float-format differences.
+- CSV-only Vercel runtime: homepage, Dash layout/dependencies and CSS returned HTTP 200.
+- 864 filter/KPI combinations passed; representative complete reports generated all five charts.
+- Browser checks covered search, Generate Report, rapid repeated reports, and a sparse cyclist/fatal selection.
+  The zero-casualty share displayed N/A; sparse scatter feedback was present. No console errors appeared in those checks.
+- Desktop layout showed no horizontal document overflow. Physical-phone and public Vercel testing remain separate.
+- All twelve regenerated notebook charts were visually reviewed; no saved error outputs remain.
