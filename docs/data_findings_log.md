@@ -59,15 +59,16 @@ and residents’ transport choices are unmeasured. No null test establishes equi
 Keep `data/raw/` for repeat runs; it is intentionally excluded from Git and Vercel. To reproduce this exact run on
 another machine, explicitly transfer those same cache files and verify the hashes above. Otherwise the notebook
 downloads current API data and records a different snapshot. Run all notebook cells, then `python app/prepare_data.py`.
-The small website CSV and Parquet tables are regenerated from that notebook run and committed together.
-Vercel configuration is prepared locally; deployment, public access and actual Colab execution remain unverified.
+The small website CSV tables are regenerated from that notebook run and committed.
+The website is deployed at https://nyc-housing-transport.vercel.app/. Public loading, five charts and KPIs were
+verified in a browser without a sign-in prompt; no console errors were observed during loading. Actual Colab execution remains unverified.
 
 ## Local website verification
 
-- All six generated CSV/Parquet pairs agree in values, allowing CSV dtype/float-format differences.
+- The six website tables were reconciled with the notebook outputs before export.
 - CSV-only Vercel runtime: homepage, Dash layout/dependencies and CSS returned HTTP 200.
 - 864 filter/KPI combinations passed; representative complete reports generated all five charts.
 - Browser checks covered search, Generate Report, rapid repeated reports, and a sparse cyclist/fatal selection.
   The zero-casualty share displayed N/A; sparse scatter feedback was present. No console errors appeared in those checks.
-- Desktop layout showed no horizontal document overflow. Physical-phone and public Vercel testing remain separate.
+- Desktop layout showed no horizontal document overflow. Physical-phone testing remains unverified; the public Vercel check covered initial loading.
 - All twelve regenerated notebook charts were visually reviewed; no saved error outputs remain.

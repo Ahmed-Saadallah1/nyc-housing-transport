@@ -4,7 +4,7 @@ Input  (written by the notebook, Section 4-6): data/processed/collisions_clean.p
                                                data/processed/housing_clean.parquet,
                                                data/processed/buildings_exposure.parquet,
                                                data/processed/zip_year_panel.parquet
-Output (committed to the repository):          app/data/*.parquet and app/data/*.csv (a few MB in total)
+Output (committed to the repository):          app/data/*.csv (a few MB in total)
 
 Run from the repository root:  python app/prepare_data.py
 """
@@ -105,7 +105,6 @@ assert zip_housing["affordable_units_completed"].sum() == zip_panel["affordable_
 print("Reconciliation checks passed.")
 
 for name, table in outputs.items():
-    path = os.path.join(OUT, f"{name}.parquet")
-    table.to_parquet(path, index=False)
-    table.to_csv(path.replace(".parquet", ".csv"), index=False)  # CSV copy for hosts without pyarrow
+    path = os.path.join(OUT, f"{name}.csv")
+    table.to_csv(path, index=False)
     print(f"{name:<14} {len(table):>8,} rows  {os.path.getsize(path) / 1e6:6.2f} MB")

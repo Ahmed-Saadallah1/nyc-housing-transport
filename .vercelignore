@@ -1,12 +1,9 @@
 /notebooks/
 /data/
 /docs/
-/deploy/
-/render.yaml
 /requirements.txt
 /app/requirements.txt
 /app/prepare_data.py
-/app/data/*.parquet
 .venv/
 .venv-vercel/
 __pycache__/

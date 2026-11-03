@@ -8,7 +8,7 @@ German International University, Faculty of Informatics and Computer Science
 
 | | Link |
 |---|---|
-| Website (deployed) | Not deployed yet — add the verified Vercel URL after deployment |
+| Website (deployed) | [Homes on Dangerous Streets?](https://nyc-housing-transport.vercel.app/) |
 | Notebook | [`notebooks/Milestone1_Housing_Collisions.ipynb`](notebooks/Milestone1_Housing_Collisions.ipynb) |
 | Housing dataset | [Affordable Housing Production by Building (`hg8x-zxpr`)](https://data.cityofnewyork.us/Housing-Development/Affordable-Housing-Production-by-Building/hg8x-zxpr) |
 | Transportation dataset | [Motor Vehicle Collisions – Crashes (`h9gi-nx95`)](https://data.cityofnewyork.us/Public-Safety/Motor-Vehicle-Collisions-Crashes/h9gi-nx95) |
@@ -37,8 +37,8 @@ nyc-housing-transport/
 │   └── Milestone1_Housing_Collisions.ipynb   # EDA, cleaning, integration, 12 research questions, story
 ├── app/
 │   ├── app.py              # Dash website (filters, search, Generate Report, 5 charts, story)
-│   ├── prepare_data.py     # builds app/data/ (Parquet + CSV) from the notebook's cleaned outputs
-│   ├── data/               # small pre-aggregated tables used by the website: .parquet and .csv copies
+│   ├── prepare_data.py     # builds app/data/ (CSV) from the notebook's cleaned outputs
+│   ├── data/               # small pre-aggregated CSV tables used by the website
 │   ├── assets/style.css    # website styling
 │   └── requirements.txt    # website dependencies (pinned)
 ├── data/
@@ -47,14 +47,10 @@ nyc-housing-transport/
 ├── docs/
 │   ├── prompt_log.md       # every prompt used, as required by the project description
 │   └── data_findings_log.md
-├── deploy/
-│   ├── pythonanywhere_wsgi.py          # WSGI entry point for PythonAnywhere
-│   └── requirements-pythonanywhere.txt # packages to install on PythonAnywhere
 ├── wsgi.py                 # Flask entry point for Vercel
 ├── pyproject.toml          # Vercel website dependencies and Python version
 ├── vercel.json             # Vercel framework and function configuration
 ├── .vercelignore           # excludes notebooks and large source data from deployment
-├── render.yaml             # optional legacy Render deployment blueprint
 ├── requirements.txt        # notebook dependencies
 └── README.md
 ```
@@ -88,8 +84,7 @@ New downloads record request parameters and retrieval time. Do not delete a work
 pip install -r app/requirements.txt
 python app/app.py                 # open http://127.0.0.1:8050
 ```
-The website reads only the small tables in `app/data/`: the Parquet files when `pyarrow` is installed, otherwise the
-identical CSV copies. Vercel uses these CSV copies to avoid installing pyarrow. To rebuild them after re-running the notebook, download the
+The website reads only the small CSV tables in `app/data/`. To rebuild them after re-running the notebook, download the
 four Parquet files from `My Drive/nyc-housing-transport/data/processed` into the repository's `data/processed/`
 folder and run (requires `scikit-learn`):
 ```bash
@@ -112,7 +107,7 @@ python app/prepare_data.py
 The repository is configured to run the existing Dash website through its Flask server on Vercel.
 The notebook is not executed during deployment. The website reads the committed CSV tables in `app/data/`.
 
-1. Push the reviewed changes to GitHub, then import `Ahmed-Saadallah1/nyc-housing-transport` in Vercel.
+1. Push the reviewed changes to GitHub, then import your GitHub fork in Vercel.
 2. Select your personal **Hobby** plan, not a Pro trial or paid team.
 3. Use these project settings:
 
@@ -126,11 +121,11 @@ The notebook is not executed during deployment. The website reads the committed 
    | Environment Variables | None required |
 
 4. Select **Deploy**. `pyproject.toml` selects Python 3.13 and `wsgi:app`, which exports Dash's Flask server.
-   `.vercelignore` excludes the notebook, raw/processed data, and unused Parquet copies from the upload.
+   `.vercelignore` excludes the notebook and raw/processed data from the upload.
 5. Open the generated `https://<project>.vercel.app` URL. Test every dropdown, the search
    `Brooklyn 2022 new buildings`, **Generate Report**, chart hover/zoom, and a sparse selection on desktop and phone.
    Check Vercel runtime logs if a page or callback fails.
-6. Replace the deployment status at the top of this README with the actual tested URL.
+6. Keep the website link at the top of this README current.
    Verify that a signed-out visitor can open the production site without Vercel authentication.
 
 No API keys, database, custom domain, notebook runtime, or payment method is needed by the application.

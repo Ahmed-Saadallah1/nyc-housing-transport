@@ -4,7 +4,7 @@ Explore how NYC's affordable-housing production (HPD) relates to motor-vehicle c
 Data: pre-aggregated tables in app/data/, built by app/prepare_data.py from the notebook's cleaned outputs.
 
 Run locally:  python app/app.py            (then open http://127.0.0.1:8050)
-Production:   PythonAnywhere WSGI (deploy/pythonanywhere_wsgi.py) or gunicorn app.app:server (render.yaml)
+Production:   Vercel via wsgi.py (see vercel.json and pyproject.toml)
 """
 import os
 import re
@@ -21,14 +21,9 @@ DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data")
 TEXT_COLUMNS = {"zip_code": str, "building_id": str}  # identifiers stay text when read from CSV
 
 
-def load(name):
-    # Read a website table: Parquet when pyarrow is installed (Render / local), otherwise the CSV copy
-    # (PythonAnywhere free accounts, where installing pyarrow does not fit in the disk quota).
-    parquet_path = os.path.join(DATA_DIR, f"{name}.parquet")
-    try:
-        return pd.read_parquet(parquet_path)
-    except ImportError:
-        return pd.read_csv(os.path.join(DATA_DIR, f"{name}.csv"), dtype=TEXT_COLUMNS)
+def load(name: str) -> pd.DataFrame:
+    """Read a committed website table with text identifiers preserved."""
+    return pd.read_csv(os.path.join(DATA_DIR, f"{name}.csv"), dtype=TEXT_COLUMNS)
 
 
 CRASH_CUBE = load("crash_cube")
